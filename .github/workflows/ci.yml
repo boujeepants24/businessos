@@ -81,5 +81,5 @@ jobs:
         run: forge lint src
       - name: Test (unit, fuzz 10k runs, invariants 256 x 500)
         run: forge test -vvv
-      - name: Coverage
-        run: forge coverage --ir-minimum --report summary
+      - name: Coverage (default fuzz settings; the heavy run above already tested depth)
+        run: FOUNDRY_PROFILE=default forge coverage --ir-minimum --report summary
