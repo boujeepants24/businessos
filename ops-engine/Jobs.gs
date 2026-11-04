@@ -8,6 +8,15 @@ function intakeLead_(lead) {
   if (!lead || !lead.name || !lead.phone) throw new Error("Name and phone are required");
   if (String(lead.phone).replace(/\D/g, "").length < 10) throw new Error("Phone number too short");
 
+  // A caller who rings again before anyone has called back is the same enquiry, not a new lead.
+  if (lead.source === "missed-call") {
+    const open = findOpenJobByPhone_(lead.phone, 72);
+    if (open) {
+      updateJob_(open, {}, "Called again (missed)");
+      return { ok: true, ref: open.Ref, status: open.Status, merged: true };
+    }
+  }
+
   const hasSlot = lead.date && lead.slotHour !== undefined && lead.slotHour !== "";
   if (hasSlot && takenSlots_().has(lead.date + "|" + Number(lead.slotHour))) return { ok: false, error: "slot_taken" };
 
@@ -31,7 +40,8 @@ function intakeLead_(lead) {
   // Customer hears back within seconds, even at 2am: it's their own enquiry, so quiet hours don't apply.
   if (hasSlot) {
     if (sendTemplate_(job, "bookingConfirmed")) updateJob_(job, { BookingConfirmedAt: now }, "Booking confirmation sent");
-  } else {
+  } else if (!lead.skipAutoReply) {
+    // skipAutoReply: the comms gateway has already texted this caller.
     sendTemplate_(job, "enquiryReceived");
   }
   alertOwnerNewLead_(job);
@@ -141,4 +151,48 @@ function markLost_(ref, reason) {
 function addManualJob_(f) {
   return intakeLead_({ source: "phone", name: f.name, phone: f.phone, email: f.email, area: f.area, service: f.service, notes: f.notes,
     date: f.date || undefined, slotHour: f.date ? f.slotHour : undefined, slot: f.slot });
+}
+
+/* ---------- Inbound texts and voicemails (from the comms gateway) ---------- */
+
+function phoneKey_(phone) {
+  // Last 9 digits match a number however it was typed: "07700 900456", "+44 7700 900456", "447700900456".
+  const digits = String(phone || "").replace(/\D/g, "");
+  return digits.length >= 9 ? digits.slice(-9) : "";
+}
+
+/** Most recent New/Contacted job for this phone created within `maxHours`, or null. */
+function findOpenJobByPhone_(phone, maxHours) {
+  const key = phoneKey_(phone);
+  if (!key) return null;
+  const matches = readJobs_().filter((j) =>
+    phoneKey_(j.Phone) === key && [STATUS.NEW, STATUS.CONTACTED].includes(j.Status) && hoursSince_(j.Created) <= maxHours);
+  return matches.length ? matches[matches.length - 1] : null;
+}
+
+function recordInboundMessage_(evt) {
+  const key = phoneKey_(evt.phone);
+  const text = clean_(String(evt.text || "").slice(0, 1500));
+  if (!key || !text) throw new Error("A message needs a phone number and text");
+  const label = evt.channel === "voicemail" ? "Voicemail" : "Text";
+
+  // Attach to this person's latest job that isn't finished; otherwise start a new enquiry.
+  const jobs = readJobs_().filter((j) => phoneKey_(j.Phone) === key && j.Status !== STATUS.LOST);
+  let job = jobs.length ? jobs[jobs.length - 1] : null;
+  if (!job || [STATUS.PAID, STATUS.CLOSED].includes(job.Status)) {
+    intakeLead_({ source: evt.channel || "sms", name: label + " enquiry", phone: evt.phone, notes: text, service: "General enquiry", skipAutoReply: true });
+    return { ok: true, created: true };
+  }
+  const stampText = `[${label} ${stamp_(new Date())}] ${text}`;
+  const notes = (job.Notes ? job.Notes + "\n" : "") + stampText;
+  updateJob_(job, { Notes: notes.slice(-4000) }, `${label} received`);
+
+  if (CONFIG.ownerEmail) {
+    MailApp.sendEmail({
+      to: CONFIG.ownerEmail,
+      subject: `${label} from ${job.Name}: ${text.slice(0, 60)}`,
+      body: `${job.Name} (${phone_(job)}) sent a ${label.toLowerCase()} about ${job.Service} (ref ${job.Ref}):\n\n${text}\n\nJobs app: ${ownerAppUrl_()}`
+    });
+  }
+  return { ok: true, ref: job.Ref };
 }

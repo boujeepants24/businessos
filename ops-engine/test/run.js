@@ -260,4 +260,55 @@ test("every customer message is logged", () => {
   assert(log.length > 20 && log.every((r) => r[1] && r[2]));
 });
 
+
+test("missed call from the comms gateway: one lead, no second auto-text, repeat calls merge", () => {
+  at("2027-11-02T10:00:00Z");
+  const before = fetches.length;
+  const r1 = post({ source: "missed-call", ref: "MC-AAAA1111", name: "Missed caller", phone: "+447700900888", service: "Call back", notes: "Missed call. Text-back sent.", skipAutoReply: true });
+  assert.strictEqual(r1.status, "New");
+  assert.strictEqual(fetches.length, before, "gateway already texted: Ops Engine must not text again");
+  assert(mailsTo(C.ownerEmail).some((m) => /Call back: Call back/.test(m.subject)), "owner alerted");
+  advance(0.5);
+  const r2 = post({ source: "missed-call", ref: "MC-BBBB2222", name: "Missed caller", phone: "+447700900888", service: "Call back", skipAutoReply: true });
+  assert.deepStrictEqual([r2.merged, r2.ref], [true, "MC-AAAA1111"]);
+  assert.strictEqual(G.readJobs_().filter((j) => String(j.Phone).endsWith("7700900888")).length, 1);
+  assert(/Called again \(missed\)/.test(job("MC-AAAA1111").History));
+});
+
+test("a text reply is attached to the caller's open lead and the owner is told", () => {
+  const before = mailsTo(C.ownerEmail).length;
+  const r = post({ type: "message", channel: "sms", phone: "+447700900888", text: "Hi, it's Raj. Kitchen tap leaking, can you come Friday?" });
+  assert.deepStrictEqual([r.ok, r.ref], [true, "MC-AAAA1111"]);
+  assert(/\[Text .*\] Hi, it's Raj\. Kitchen tap leaking/.test(job("MC-AAAA1111").Notes));
+  const m = mailsTo(C.ownerEmail).slice(before);
+  assert(m.some((x) => /^Text from Missed caller: Hi, it's Raj/.test(x.subject)));
+});
+
+test("numbers match however they were typed (local vs international format)", () => {
+  post({ source: "booking-page", ref: "BK-LOCAL", name: "Priya K", phone: "07700 900999", area: "Leeds", service: "Boiler repair", date: "2027-11-09", slotHour: 10, slot: "10:00–12:00" });
+  const r = post({ type: "message", channel: "voicemail", phone: "+447700900999", text: "Voicemail (14s): https://api.twilio.com/rec/RE1" });
+  assert.strictEqual(r.ref, "BK-LOCAL");
+  assert(/\[Voicemail .*\] Voicemail \(14s\)/.test(job("BK-LOCAL").Notes));
+});
+
+test("a text from an unknown number starts a new enquiry without an auto-reply", () => {
+  const before = fetches.length;
+  const r = post({ type: "message", channel: "sms", phone: "+15125550123", text: "Do you service Worcester boilers?" });
+  assert.strictEqual(r.created, true);
+  const j = G.readJobs_().find((x) => String(x.Phone).endsWith("5125550123"));
+  assert.deepStrictEqual([j.Name, j.Status, j.Notes], ["Text enquiry", "New", "Do you service Worcester boilers?"]);
+  assert.strictEqual(fetches.length, before, "no automatic text back to an inbound text");
+});
+
+test("a text after a finished job starts a fresh enquiry instead of reopening it", () => {
+  // CH-1 was paid earlier in this suite.
+  const r = post({ type: "message", channel: "sms", phone: "+44 7700 900444", text: "Drain blocked again" });
+  assert.strictEqual(r.created, true);
+});
+
+test("message events are validated", () => {
+  assert.strictEqual(post({ type: "message", phone: "", text: "hi" }).ok, false);
+  assert.strictEqual(post({ type: "message", phone: "+447700900111", text: "" }).ok, false);
+});
+
 console.log(`\n${passed} passed`);

@@ -16,6 +16,8 @@ New ─▶ Contacted ─▶ Quoted ─▶ Booked ─▶ Invoiced ─▶ Paid
 | Step | What happens | Who does it | How fast |
 |---|---|---|---|
 | Enquiry in | Row created. The customer gets an instant reply (confirmation if they booked a slot, "we'll call you" if not). The owner gets an email with the details. | System | Seconds, 24/7 |
+| Missed phone call | The [comms gateway](../comms-gateway/README.md) texts the caller the booking link and creates a "Missed caller" lead. Repeat calls from the same number merge into it. | System | Seconds |
+| Text or voicemail from a customer | Attached to that person's open lead (numbers match whether typed locally or internationally); owner emailed. Unknown number = new enquiry. | System | Seconds |
 | Not called back | Owner reminded once at 15 min. Escalated to the agency at 2 h (straight to your inbox if urgent). | System → owner → you | 15 min / 2 h |
 | Call back | Owner taps **Called**, then **Book** or **Quote** in the jobs app. | Owner | |
 | Quote | Quote emailed or texted. Follow-ups go out at day 2 and day 5. | System | |

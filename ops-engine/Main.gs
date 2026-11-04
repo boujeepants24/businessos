@@ -9,7 +9,10 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    return json_(intakeLead_(JSON.parse(e.postData.contents)));
+    const body = JSON.parse(e.postData.contents);
+    // Events from the comms gateway: texts and voicemails are attached to the caller's lead.
+    if (body && body.type === "message") return json_(recordInboundMessage_(body));
+    return json_(intakeLead_(body));
   } catch (err) {
     console.error(err);
     return json_({ ok: false, error: String(err.message || err) });
