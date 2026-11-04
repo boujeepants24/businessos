@@ -13,6 +13,7 @@ dependencies = [
   "uvicorn>=0.30",
   "twilio>=9,<10",
   "httpx>=0.27",
+  "python-multipart>=0.0.9",  # Starlette needs it to read Twilio's form-encoded webhooks
 ]
 
 [project.optional-dependencies]
