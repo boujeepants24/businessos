@@ -101,6 +101,34 @@ claude mcp add domain-rag \
 
 Resource: `knowledge://chunk/{chunk_id}` returns one passage in full.
 
+## Website chat API (many clients, one server)
+
+For the BusinessOS chat widget, `domainrag http` serves every client from one process. Each client has its own documents, its own index and its own list of websites allowed to call it.
+
+```bash
+cp deploy/clients.example.json deploy/clients.json      # one entry per client business
+domainrag ingest --clients deploy/clients.json         # index every client's folder
+domainrag http --clients deploy/clients.json --port 8080
+```
+
+```
+POST /v1/clients/{client_id}/ask   {"question": "Do I need a service to keep the warranty?"}
+→ {"answerable": true, "answer": "...", "status": "ok", "citations": [{"source": "warranty.md", "section": "Warranty > Conditions"}]}
+GET  /health
+```
+
+The endpoint is public, so it is deliberately narrow:
+
+| Protection | How |
+|---|---|
+| Only the client's own websites | CORS allow-list per client; requests from any other origin get 403. Calls with no Origin header (server-to-server) need `X-API-Key: $DOMAINRAG_SERVER_KEY`. |
+| Clients can't see each other's documents | Separate index per client; a client id in the URL selects it. |
+| Cost control | Per-visitor limit (default 12 questions per 10 minutes) and a daily cap per client (default 300). Questions with no relevant passages never call Claude. |
+| Small surface | Questions capped at 500 characters; responses contain the answer and section names only, never raw document text, token counts or costs. |
+| Privacy | Logs record question length and outcome, not the question itself. |
+
+Rate limits are in memory, which is right for one server process; use Redis if you run several. Put the server behind HTTPS (a reverse proxy such as Caddy or a platform like Fly.io or Render).
+
 ## Configuration
 
 All settings are environment variables; `.env.example` documents each one.
@@ -135,7 +163,7 @@ domainrag eval evals/dataset.jsonl --answers --out report.json   # also grades C
 ## Development
 
 ```bash
-pytest -q            # 44 tests: loading, chunking, index, retrieval, answering, MCP tools, evals
+pytest -q            # 55 tests: loading, chunking, index, retrieval, answering, MCP tools, HTTP API, evals
 ruff check src tests && ruff format --check src tests
 mypy src
 ```
@@ -157,7 +185,8 @@ The tests run offline. They use a small fictional corpus in `tests/fixtures/corp
 - [ ] Write 30+ eval questions (including out-of-scope ones) and record baseline hit@k and MRR
 - [ ] Voyage embeddings and a re-ranking step, measured against that baseline
 - [ ] Streamable HTTP transport with auth, for remote MCP clients
-- [ ] Integrate into BusinessOS as its knowledge layer (client FAQs, price lists, policies)
+- [x] Integrate into BusinessOS as its knowledge layer (chat widget answers from each client's own documents)
+- [ ] Container image and a one-command deploy for the HTTP API
 
 ## License
 
