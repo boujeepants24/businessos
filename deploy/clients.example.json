@@ -1,0 +1,13 @@
+{
+  "clients": [
+    {
+      "id": "northfield",
+      "domain": "Northfield Plumbing & Heating: its services, prices policy, areas covered, opening hours and common boiler problems",
+      "docs_dir": "../clients/northfield/knowledge",
+      "db_path": "../.domainrag/northfield.db",
+      "allowed_origins": ["https://northfieldplumbing.example", "https://book.northfieldplumbing.example"],
+      "daily_limit": 300,
+      "per_ip_limit": 12
+    }
+  ]
+}

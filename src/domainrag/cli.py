@@ -36,6 +36,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_ing = sub.add_parser("ingest", help="index the knowledge folder (only changed files)")
     p_ing.add_argument("--rebuild", action="store_true", help="drop the index and re-embed everything")
+    p_ing.add_argument("--clients", type=Path, help="index every client listed in a clients file instead")
 
     p_search = sub.add_parser("search", help="show the passages retrieved for a query")
     p_search.add_argument("query")
@@ -54,6 +55,11 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("status", help="index size and settings")
     sub.add_parser("serve", help="run the MCP server on stdio")
 
+    p_http = sub.add_parser("http", help="run the public HTTP API for chat widgets (many clients)")
+    p_http.add_argument("--clients", type=Path, required=True, help="clients file (see deploy/clients.example.json)")
+    p_http.add_argument("--host", default="127.0.0.1")
+    p_http.add_argument("--port", type=int, default=8080)
+
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
@@ -63,6 +69,28 @@ def main(argv: list[str] | None = None) -> int:
     settings = Settings.from_env()
 
     try:
+        if args.command == "ingest" and args.clients:
+            from .http_api import client_settings, load_clients
+
+            failed = False
+            for client_cfg in load_clients(args.clients):
+                cs = client_settings(client_cfg, settings)
+                client_cfg.docs_dir.mkdir(parents=True, exist_ok=True)
+                report = ingest(cs, Store(cs.db_path), make_embedder(cs), rebuild=args.rebuild)
+                print(f"{client_cfg.id}: {report.summary()}")
+                failed = failed or bool(report.failed)
+            return 1 if failed else 0
+
+        if args.command == "http":
+            import uvicorn
+
+            from .http_api import build_app
+
+            settings.validate()
+            app = build_app(args.clients, settings)
+            uvicorn.run(app.starlette(), host=args.host, port=args.port, log_level="info")
+            return 0
+
         if args.command == "ingest":
             settings.validate()
             store = Store(settings.db_path)
