@@ -7,6 +7,7 @@
 | [`booking-site/`](booking-site) | A fast, mobile-first booking page. Customers pick a job and a live arrival window and confirm in three taps. It includes local SEO markup, tap-to-call and WhatsApp buttons, and the same slot can never be booked twice. |
 | [`chat-receptionist/`](chat-receptionist) | A chat widget installed with one script tag on any website. It answers 24/7, understands plain messages ("my boiler says F28"), separates emergencies from routine jobs, answers FAQs, and collects the name, number, area and problem. |
 | [`ops-engine/`](ops-engine) | **The back office.** It takes every job from enquiry to paid: instant replies, reminders, quote follow-ups, PDF invoices, payment chasing, review requests, rebooking and monthly reports. The owner uses a five-button phone app. You get one daily HQ email across all clients. |
+| [`client-knowledge/`](client-knowledge) | Optional: lets the chat receptionist answer free-form questions from the client's own documents (services, areas, policies, warranty) via [domain-rag](https://github.com/boujeepants24/domain-rag), with sources, and never guessing. |
 | [`pipeline/`](pipeline) | Your own private sales board, from prospect to live client, with each stage's checklist already written. |
 | [`roi-proposal/`](roi-proposal) | A discovery-call tool. Fill it in with the owner using their own numbers to show the work they're losing, then copy the follow-up email it writes. |
 
@@ -26,9 +27,9 @@ python3 -m http.server 8000
 4. Paste the two chat `<script>` tags into the client's existing website.
 5. Make one test booking and one test chat, then mark the booking done. Check the confirmation, the alerts and the invoice.
 6. Send the owner their jobs-app link and add the client to your HQ sheet.
+7. Optional: collect the client's knowledge files ([`client-knowledge/README.md`](client-knowledge/README.md)) and set `knowledgeUrl` in the chat config.
 
 ## Ideas for custom work
 
 - Missed-call text-back: when a call goes unanswered, the customer gets an automatic text with the booking link
-- An AI upgrade for the chat receptionist that answers free-form questions from the client's own price list and FAQs
 - An AI voice receptionist that answers missed calls and books straight into the Ops Engine

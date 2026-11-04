@@ -82,6 +82,7 @@
 .composer input:focus { outline: none; border-color: var(--brand); }
 .composer button { border: 0; width: 42px; height: 42px; border-radius: 50%; background: var(--brand); color: var(--ink); cursor: pointer; display: grid; place-items: center; flex: none; }
 .composer button svg { width: 18px; height: 18px; fill: currentColor; }
+.src { align-self: flex-start; font-size: 12px; color: var(--muted); margin: -2px 0 2px 4px; max-width: 85%; }
 .err { color: #E5484D; font-size: 13px; align-self: flex-start; }
 .foot { text-align: center; font-size: 11px; color: var(--muted); padding: 0 0 8px; background: var(--bg); }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
@@ -168,6 +169,41 @@
     else { bubble(v, "me"); route(v); }
   });
 
+  /* ---------- Knowledge base (optional): answers questions from the business's own documents ---------- */
+  const QUESTION = /\?\s*$|^(what|how|do|does|did|can|could|is|are|was|when|where|why|which|who|will|would|should|have|has)\b/i;
+
+  // Returns the API's JSON ({answerable, answer, citations}) when the knowledge base responded, or null when
+  // it isn't configured or couldn't be reached (offline, slow, rate-limited). Null means "use the scripted flow".
+  async function askKnowledge(question) {
+    if (!C.knowledgeUrl) return null;
+    const t = document.createElement("div");
+    t.className = "msg bot typing"; t.innerHTML = "<i></i><i></i><i></i>"; log.appendChild(t); scroll();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), (C.knowledgeTimeoutSeconds || 12) * 1000);
+    try {
+      const res = await fetch(C.knowledgeUrl, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: question.slice(0, 500) }), signal: ctrl.signal
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data && typeof data.answerable === "boolean" ? data : null;
+    } catch (_) {
+      return null;
+    } finally {
+      clearTimeout(timer); t.remove();
+    }
+  }
+
+  async function sayKnowledge(data) {
+    bubble(data.answer, "bot");
+    const sections = [...new Set((data.citations || []).map((c) => c.section).filter(Boolean))].slice(0, 2);
+    if (sections.length) {
+      const s = document.createElement("div");
+      s.className = "src"; s.textContent = "From: " + sections.join(" · "); log.appendChild(s); scroll();
+    }
+  }
+
   /* ---------- Conversation ---------- */
   const lead = {};
   const svcOptions = () => C.services.map((s) => ({ label: s.name, value: s.id, urgent: s.urgent, keywords: s.keywords }));
@@ -204,6 +240,17 @@
   async function route(text) {
     const svc = detectService(text);
     if (svc && svc.urgent) return emergency(text);
+    // A question goes to the business's own documents first, before keyword routing, so
+    // "Do I need a service to keep the warranty?" is answered rather than treated as a booking.
+    if (C.knowledgeUrl && QUESTION.test(text.trim())) {
+      const kb = await askKnowledge(text);
+      if (kb && kb.answerable) { await sayKnowledge(kb); return menu("Anything else? I can also book you in."); }
+      if (kb && !svc && !detectFaq(text)) {
+        await say("I can't find that in our information, so I won't guess.");
+        return menu("Here's what I can help with:");
+      }
+      // kb === null (unreachable) or a booking-type question: carry on with the scripted flow.
+    }
     if (svc) { lead.notes = text; return book(svc); }
     const f = detectFaq(text);
     if (f) { await say(f.a); return menu("Anything else I can help with?"); }
@@ -326,6 +373,8 @@
       const q = await ask("Your question");
       const f = detectFaq(q);
       if (f) { await say(f.a); return menu("Anything else?"); }
+      const kb = await askKnowledge(q);
+      if (kb && kb.answerable) { await sayKnowledge(kb); return menu("Anything else? I can also book you in."); }
       lead.notes = "Question: " + q; lead.service = "General enquiry"; lead.slot = "Call back";
       await say("Good question. That's one for the team. I'll ask them to call you.");
       await areaStep(); await contactStep(); return confirm();

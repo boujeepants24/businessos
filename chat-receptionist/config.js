@@ -20,12 +20,17 @@ window.RECEPTIONIST = {
   faqs: [
     { q: "Which areas do you cover?", keywords: ["area", "cover", "near", "travel"], a: "We cover Leeds and the surrounding areas: Headingley, Roundhay, Horsforth, Chapel Allerton, Wetherby and Otley." },
     { q: "Are you Gas Safe registered?", keywords: ["gas safe", "registered", "qualified", "insured", "certified"], a: "Yes. Every engineer is Gas Safe registered and we're fully insured." },
-    { q: "How quickly can you come?", keywords: ["quick", "today", "soon", "fast", "when"], a: "Emergencies get a same-day response. Most other jobs can be booked within one or two working days." },
+    { q: "How quickly can you come?", keywords: ["quick", "today", "soon", "fast"], a: "Emergencies get a same-day response. Most other jobs can be booked within one or two working days." },
     { q: "Do you give a quote first?", keywords: ["quote", "cost", "price", "how much", "estimate"], a: "Yes. The engineer diagnoses the problem and explains your options before any work starts, so there are no surprises." }
   ],
 
   teaser: "Boiler or leak trouble? I can book you in now.",
   teaserDelaySeconds: 6,
   webhookUrl: "",                     // same Ops Engine URL as the booking site
+
+  // Optional: answer free-form questions from this business's own documents (domain-rag HTTP API).
+  // e.g. "https://kb.youragency.example/v1/clients/northfield/ask". "" = scripted answers only.
+  knowledgeUrl: "",
+  knowledgeTimeoutSeconds: 12,
   position: "right"                   // "right" or "left"
 };
