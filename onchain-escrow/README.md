@@ -72,8 +72,8 @@ The invariant handler counts the actions that actually execute, not just the cal
 Requires [Foundry](https://getfoundry.sh).
 
 ```bash
-git clone --recurse-submodules https://github.com/boujeepants24/onchain-escrow
-cd onchain-escrow
+git clone --recurse-submodules https://github.com/boujeepants24/businessos
+cd businessos/onchain-escrow
 forge build
 forge test                      # all suites
 FOUNDRY_PROFILE=ci forge test   # heavier fuzz/invariant settings used in CI
