@@ -1,4 +1,4 @@
-# Business Offer Kit
+# BusinessOS
 
 **The client does the work. We run the rest of the business.** That means answering every enquiry, booking, reminders, quotes, invoices, chasing payment, reviews, bringing customers back, and reporting. It's built for local service businesses (plumbers, electricians, roofers, HVAC, cleaners, clinics), runs without a server, and each client is set up from one config file.
 
