@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import anthropic
-import httpx
+import httpx2
 import pytest
 
 from domainrag.answer import ANSWER_SCHEMA, Answerer, AnswerError, build_user_message, neutralise
@@ -67,8 +67,8 @@ def test_stop_reasons_are_checked_before_reading_content(index, stop_reason, sta
 
 
 def test_api_errors_become_readable_answer_errors(index):
-    req = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
-    err = anthropic.RateLimitError("slow down", response=httpx.Response(429, request=req), body=None)
+    req = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+    err = anthropic.RateLimitError("slow down", response=httpx2.Response(429, request=req), body=None)
     answerer, _ = _answerer(raises=err)
     with pytest.raises(AnswerError, match="Rate limited"):
         answerer.answer("q", index.retriever.search("F28", k=2))
