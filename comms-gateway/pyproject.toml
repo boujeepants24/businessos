@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "commsgateway"
+version = "0.1.0"
+description = "Phone and SMS front door for BusinessOS: missed-call text-back, voicemail and inbound texts, via Twilio."
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "starlette>=0.40",
+  "uvicorn>=0.30",
+  "twilio>=9,<10",
+  "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+commsgateway = "commsgateway.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

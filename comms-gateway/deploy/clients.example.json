@@ -1,0 +1,17 @@
+{
+  "clients": [
+    {
+      "id": "northfield",
+      "business": "Northfield Plumbing",
+      "twilio_number": "+441134960123",
+      "owner_phone": "+447700900500",
+      "ops_engine_url": "https://script.google.com/macros/s/REPLACE_WITH_CLIENT_DEPLOYMENT/exec",
+      "booking_url": "https://book.northfieldplumbing.example",
+      "timezone": "Europe/London",
+      "hours": { "days": [0, 1, 2, 3, 4, 5], "open": 8, "close": 18 },
+      "ring_seconds": 20,
+      "forward_after_hours": false,
+      "voicemail": true
+    }
+  ]
+}
