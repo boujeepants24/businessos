@@ -1,0 +1,199 @@
+<title>Missed Revenue Audit</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a two-column audit. Inputs on the left, the leak on the right, the pitch summary below. */
+:root {
+  --bg: #F3F6F7; --surface: #FFFFFF; --ink: #132027; --muted: #5C6B73; --line: #DAE2E6;
+  --brand: #0F5C8C; --loss: #C2410C; --gain: #15803D; --brand-ink: #FFFFFF;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0D1417; --surface: #152027; --ink: #E5ECEF; --muted: #97A7AF; --line: #263540; --brand: #4A9CD0; --loss: #FB923C; --gain: #4ADE80; --brand-ink: #0D1417; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #0D1417; --surface: #152027; --ink: #E5ECEF; --muted: #97A7AF; --line: #263540; --brand: #4A9CD0; --loss: #FB923C; --gain: #4ADE80; --brand-ink: #0D1417; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); }
+.page { max-width: 1080px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 24px; }
+h1, h2 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; }
+.lede { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
+.eyebrow { font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); margin: 0 0 8px; }
+.grid { display: grid; gap: 24px; align-items: start; }
+@media (min-width: 880px) { .grid { grid-template-columns: 400px 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 18px; min-width: 0; }
+.panel h2 { font-size: 1.1rem; }
+.field { display: grid; gap: 6px; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: .92rem; font-weight: 500; }
+.field-top output { font: 500 .95rem var(--mono); font-variant-numeric: tabular-nums; color: var(--brand); white-space: nowrap; }
+.field small { color: var(--muted); font-size: .8rem; }
+input[type="range"] { width: 100%; accent-color: var(--brand); }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+input[type="text"], input[type="number"], select { width: 100%; font: 1rem var(--body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 45%, transparent); outline-offset: 1px; }
+label.lbl { font-size: .85rem; font-weight: 500; display: grid; gap: 6px; }
+
+.leak { display: grid; gap: 20px; }
+.big { display: grid; gap: 4px; }
+.big span { font-size: .9rem; color: var(--muted); }
+.big b { font: 800 clamp(2.4rem, 7vw, 4rem)/1 var(--display); color: var(--loss); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.big em { font-style: normal; color: var(--muted); font-size: .95rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kpi { padding: 14px; border-radius: 10px; background: var(--bg); display: grid; gap: 2px; }
+.kpi span { font-size: .8rem; color: var(--muted); }
+.kpi b { font: 600 1.35rem var(--display); font-variant-numeric: tabular-nums; }
+.kpi.gain b { color: var(--gain); }
+
+.funnel { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 130px 1fr 70px; gap: 10px; align-items: center; font-size: .85rem; }
+.bar .track { height: 14px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 4px; background: var(--brand); transition: width .3s; }
+.bar .fill.loss { background: var(--loss); }
+.bar .fill.gain { background: var(--gain); }
+.bar output { font: 500 .85rem var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 460px) { .bar { grid-template-columns: 96px 1fr 56px; } }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+
+.pitch { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; }
+.pitch-text { white-space: pre-wrap; font-size: .95rem; background: var(--bg); border-radius: 10px; padding: 16px; margin: 0; max-width: 75ch; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: 600 .95rem var(--body); min-height: 42px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.note { font-size: .82rem; color: var(--muted); margin: 0; }
+.status { font-size: .88rem; color: var(--gain); min-height: 1em; }
+</style>
+
+<div class="page">
+  <header>
+    <p class="eyebrow">Discovery call tool</p>
+    <h1>How much work is this business losing to missed enquiries?</h1>
+    <p class="lede">Fill this in with the owner on the call, using their own numbers. Every figure comes from what they tell you, and the summary below is ready to paste into the follow-up email.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="inTitle">
+      <h2 id="inTitle">Their numbers</h2>
+      <div class="row">
+        <label class="lbl">Business name<input type="text" id="biz" value="Northfield Plumbing"></label>
+        <label class="lbl">Currency
+          <select id="cur">
+            <option value="GBP">£ GBP</option><option value="INR">₹ INR</option><option value="USD">$ USD</option>
+            <option value="AUD">A$ AUD</option><option value="CAD">C$ CAD</option><option value="EUR">€ EUR</option>
+          </select>
+        </label>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="enq">Enquiries per month</label><output id="enqO"></output></div>
+        <input type="range" id="enq" min="10" max="1000" step="5" value="180">
+        <small>Calls, form fills, messages and DMs combined.</small>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="miss">Share they miss or answer too late</label><output id="missO"></output></div>
+        <input type="range" id="miss" min="0" max="80" step="1" value="30">
+        <small>Missed calls, voicemails nobody returns, after-hours forms answered the next day.</small>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="close">Share of answered enquiries that become jobs</label><output id="closeO"></output></div>
+        <input type="range" id="close" min="5" max="90" step="1" value="45">
+      </div>
+      <label class="lbl">Average job value
+        <input type="number" id="job" min="0" step="10" value="380" inputmode="decimal">
+      </label>
+      <div class="field">
+        <div class="field-top"><label for="rec">Missed enquiries the system would capture</label><output id="recO"></output></div>
+        <input type="range" id="rec" min="10" max="100" step="5" value="70">
+        <small>Be conservative. Not every missed enquiry is recoverable.</small>
+      </div>
+    </section>
+
+    <section class="panel leak" aria-labelledby="outTitle" aria-live="polite">
+      <h2 id="outTitle">What it costs them</h2>
+      <div class="big">
+        <span>Work walking away each month</span>
+        <b id="lostM"></b>
+        <em id="lostY"></em>
+      </div>
+      <div class="funnel" aria-label="Monthly enquiry funnel">
+        <div class="bar"><span>All enquiries</span><div class="track"><div class="fill" id="fAll"></div></div><output id="nAll"></output></div>
+        <div class="bar"><span>Missed</span><div class="track"><div class="fill loss" id="fMiss"></div></div><output id="nMiss"></output></div>
+        <div class="bar"><span>Jobs lost</span><div class="track"><div class="fill loss" id="fLost"></div></div><output id="nLost"></output></div>
+        <div class="bar"><span>Jobs recovered</span><div class="track"><div class="fill gain" id="fRec"></div></div><output id="nRec"></output></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi gain"><span>Recovered per month</span><b id="recM"></b></div>
+        <div class="kpi gain"><span>Recovered per year</span><b id="recY"></b></div>
+        <div class="kpi"><span>Extra jobs per month</span><b id="recJ"></b></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="pitch" aria-labelledby="pTitle">
+    <h2 id="pTitle">Follow-up summary</h2>
+    <pre class="pitch-text" id="pitch"></pre>
+    <div class="actions">
+      <button type="button" class="primary" id="copy">Copy summary</button>
+      <button type="button" id="reset">Reset to example</button>
+      <span class="status" id="status" role="status"></span>
+    </div>
+    <p class="note">The figures start as an example. Replace them with what the owner tells you.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const ids = ["biz", "cur", "enq", "miss", "close", "job", "rec"];
+  const defaults = {};
+  ids.forEach((id) => (defaults[id] = $(id).value));
+  try { const saved = JSON.parse(localStorage.getItem("mra") || "null"); if (saved) ids.forEach((id) => { if (saved[id] != null) $(id).value = saved[id]; }); } catch (_) {}
+
+  function money(v) {
+    const cur = $("cur").value;
+    return new Intl.NumberFormat(cur === "INR" ? "en-IN" : "en-GB", { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(Math.round(v));
+  }
+  const n1 = (v) => (v >= 10 ? Math.round(v) : Math.round(v * 10) / 10).toString();
+
+  function calc() {
+    const enq = +$("enq").value, miss = +$("miss").value / 100, close = +$("close").value / 100, job = Math.max(0, +$("job").value || 0), rec = +$("rec").value / 100;
+    const missed = enq * miss, lostJobs = missed * close, recJobs = lostJobs * rec;
+    const lost = lostJobs * job, gained = recJobs * job;
+
+    $("enqO").textContent = enq; $("missO").textContent = Math.round(miss * 100) + "%"; $("closeO").textContent = Math.round(close * 100) + "%"; $("recO").textContent = Math.round(rec * 100) + "%";
+    $("lostM").textContent = money(lost);
+    $("lostY").textContent = money(lost * 12) + " a year, from about " + n1(lostJobs) + " jobs a month that never happen";
+    $("recM").textContent = money(gained); $("recY").textContent = money(gained * 12); $("recJ").textContent = n1(recJobs);
+    const pct = (v) => (enq ? Math.max(v / enq * 100, v > 0 ? 1 : 0) : 0) + "%";
+    $("fAll").style.width = "100%"; $("fMiss").style.width = pct(missed); $("fLost").style.width = pct(lostJobs); $("fRec").style.width = pct(recJobs);
+    $("nAll").textContent = Math.round(enq); $("nMiss").textContent = n1(missed); $("nLost").textContent = n1(lostJobs); $("nRec").textContent = n1(recJobs);
+
+    const biz = $("biz").value.trim() || "your business";
+    $("pitch").textContent =
+`Thanks for the call today. Here is what we worked out together, using your numbers:
+
+• ${biz} gets about ${Math.round(enq)} enquiries a month.
+• Around ${Math.round(miss * 100)}% are missed or answered too late. That's roughly ${n1(missed)} people a month who go to the next business on Google.
+• At your ${Math.round(close * 100)}% conversion rate and ${money(job)} average job, that's about ${money(lost)} of work a month (${money(lost * 12)} a year) going to competitors.
+
+What we'd set up:
+1. A booking page where customers pick a job and an arrival window 24/7, with no phone tag.
+2. A chat receptionist on your website that answers instantly, separates emergencies from routine work, and takes the name, number, area and problem.
+3. Every lead sent to your phone and inbox the moment it comes in, with reminders when nobody has called back.
+
+Capturing even ${Math.round(rec * 100)}% of the missed enquiries means about ${n1(recJobs)} more jobs a month, or ${money(gained)} (${money(gained * 12)} a year).
+
+Can we do a 15-minute screen share this week so you can see it running with your branding?`;
+
+    try { const s = {}; ids.forEach((id) => (s[id] = $(id).value)); localStorage.setItem("mra", JSON.stringify(s)); } catch (_) {}
+  }
+
+  ids.forEach((id) => $(id).addEventListener("input", calc));
+  $("reset").addEventListener("click", () => { ids.forEach((id) => ($(id).value = defaults[id])); calc(); $("status").textContent = "Example figures restored"; });
+  $("copy").addEventListener("click", () => {
+    const text = $("pitch").textContent;
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($("pitch")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("status").textContent = "Selected. Press Ctrl+C or ⌘C to copy."; };
+    try { navigator.clipboard.writeText(text).then(() => ($("status").textContent = "Copied"), fallback); } catch (_) { fallback(); }
+  });
+  calc();
+})();
+</script>

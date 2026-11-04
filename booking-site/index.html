@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book a Job</title>
+<meta name="description" content="Book a local tradesperson online in under a minute.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+</head>
+<body>
+<a class="skip" href="#book">Skip to booking</a>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#top" id="brand"><span class="mono" id="mono"></span><span id="bizName"></span></a>
+    <div class="top-actions">
+      <span class="open-pill" id="openPill"></span>
+      <a class="btn btn-ghost" id="topCall" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span id="topPhone"></span></a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow" id="eyebrow"></p>
+        <h1 id="tagline"></h1>
+        <ul class="trust" id="trust"></ul>
+        <div class="rating" id="rating"></div>
+      </div>
+
+      <section class="book-card" id="book" aria-labelledby="bookTitle">
+        <div class="book-head">
+          <h2 id="bookTitle">Book a visit</h2>
+          <ol class="steps" id="stepDots" aria-label="Booking progress">
+            <li class="on">Job</li><li>Time</li><li>Details</li>
+          </ol>
+        </div>
+
+        <form id="bookForm" novalidate>
+          <!-- Step 1 -->
+          <fieldset class="step" data-step="1">
+            <legend>What do you need?</legend>
+            <div class="svc-pick" id="svcPick" role="radiogroup"></div>
+            <label class="field">
+              <span>Describe the problem <em>(optional)</em></span>
+              <textarea id="notes" rows="2" maxlength="600" placeholder="e.g. Boiler showing F28, no hot water since this morning"></textarea>
+            </label>
+            <p class="err" id="err1" role="alert"></p>
+            <button type="button" class="btn btn-primary wide" data-next="2">Choose a time</button>
+          </fieldset>
+
+          <!-- Step 2 -->
+          <fieldset class="step" data-step="2" hidden>
+            <legend>When suits you?</legend>
+            <div class="days" id="days" role="radiogroup" aria-label="Day"></div>
+            <div class="slots" id="slots" role="radiogroup" aria-label="Arrival window"></div>
+            <p class="hint" id="slotHint"></p>
+            <p class="err" id="err2" role="alert"></p>
+            <div class="row-btns">
+              <button type="button" class="btn btn-ghost" data-prev="1">Back</button>
+              <button type="button" class="btn btn-primary" data-next="3">Your details</button>
+            </div>
+          </fieldset>
+
+          <!-- Step 3 -->
+          <fieldset class="step" data-step="3" hidden>
+            <legend>Where should we come?</legend>
+            <label class="field"><span>Full name</span><input id="name" autocomplete="name" required></label>
+            <label class="field"><span>Mobile number</span><input id="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+            <label class="field"><span>Postcode or area</span><input id="area" autocomplete="postal-code" required list="areaList"></label>
+            <datalist id="areaList"></datalist>
+            <label class="check"><input type="checkbox" id="consent" required> <span>Text me updates about this booking.</span></label>
+            <p class="err" id="err3" role="alert"></p>
+            <div class="row-btns">
+              <button type="button" class="btn btn-ghost" data-prev="2">Back</button>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Confirm booking</button>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="done" id="done" hidden>
+          <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <h3>Booking received</h3>
+          <p id="doneText"></p>
+          <dl class="summary" id="summary"></dl>
+          <a class="btn btn-wa wide" id="waConfirm" href="#" target="_blank" rel="noopener" hidden>Send details on WhatsApp</a>
+          <button type="button" class="btn btn-ghost wide" id="again">Book another job</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <h2 class="sec-title">Services</h2>
+      <div class="svc-grid" id="svcGrid"></div>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="wrap how">
+      <h2 class="sec-title">How booking works</h2>
+      <ol class="how-list">
+        <li><b>Pick the job and a time</b><span>Live arrival windows, no phone tag.</span></li>
+        <li><b>Get a text confirmation</b><span>With your engineer's name and arrival window.</span></li>
+        <li><b>We arrive and fix it</b><span>You get the plan before any work starts.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <h2 class="sec-title">What customers say</h2>
+      <div class="reviews" id="reviews"></div>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="wrap areas-wrap">
+      <div>
+        <h2 class="sec-title">Areas we cover</h2>
+        <ul class="areas" id="areas"></ul>
+      </div>
+      <div class="faq">
+        <h2 class="sec-title">Questions</h2>
+        <details><summary>How fast can you come out?</summary><p id="faqFast"></p></details>
+        <details><summary>Will I get a quote before work starts?</summary><p>Yes. The engineer diagnoses the problem and explains the options before touching anything.</p></details>
+        <details><summary>Can I change my booking?</summary><p>Reply to your confirmation text or message us on WhatsApp and we will move it.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div><b id="footName"></b><br><span id="footAddr"></span></div>
+    <div id="footContact"></div>
+  </div>
+</footer>
+
+<nav class="mobile-bar" aria-label="Quick contact">
+  <a id="mbCall" href="#">Call</a>
+  <a id="mbWa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a href="#book" class="mb-book">Book now</a>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

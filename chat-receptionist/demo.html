@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chat Receptionist Demo</title>
+<style>
+  body { margin: 0; font: 16px/1.6 system-ui, sans-serif; background: #EEF2F4; color: #142028; }
+  @media (prefers-color-scheme: dark) { body { background: #0E1418; color: #E7EEF2; } code { background: #1F2A30 !important; } }
+  main { max-width: 680px; margin: 0 auto; padding: 48px max(16px, env(safe-area-inset-left, 0px)) 120px; }
+  h1 { font-size: 1.8rem; line-height: 1.15; margin: 0 0 12px; }
+  code { background: #DDE4E8; padding: 2px 6px; border-radius: 4px; font-size: .9em; }
+  pre { background: #142028; color: #E7EEF2; padding: 16px; border-radius: 10px; overflow-x: auto; font-size: .85rem; }
+  button { font: inherit; padding: 10px 16px; border-radius: 8px; border: 0; background: #0F5C8C; color: #fff; cursor: pointer; }
+</style>
+<script src="config.js"></script>
+<script src="widget.js" defer></script>
+</head>
+<body>
+<main>
+  <h1>This is any client's existing website.</h1>
+  <p>The chat button in the corner is the receptionist. It answers at 2am, sorts emergencies from routine jobs, collects the name, number, area and problem, and drops the lead straight into the client's sheet and inbox.</p>
+  <p><button type="button" onclick="Receptionist.open()">Open the chat</button></p>
+  <p>Try typing naturally, for example <code>my boiler says F28</code> or <code>water is pouring through the ceiling</code>.</p>
+  <h2>Install on a client's site</h2>
+  <pre>&lt;script src="https://YOUR-HOST/clients/northfield/config.js"&gt;&lt;/script&gt;
+&lt;script src="https://YOUR-HOST/widget.js" defer&gt;&lt;/script&gt;</pre>
+  <p>It works with WordPress, Wix, Squarespace, Shopify and plain HTML: anywhere you can paste a script tag.</p>
+</main>
+</body>
+</html>
