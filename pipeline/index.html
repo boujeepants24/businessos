@@ -1,0 +1,304 @@
+<title>Client Pipeline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a job board. Header strip with today's follow-ups, then stage columns; a drawer opens for one prospect. */
+:root {
+  --bg: #EEF0EC; --col: #E3E6E0; --card: #FBFBF9; --ink: #1A1E1C; --muted: #5E6661; --line: #CDD2CB;
+  --blue: #23408E; --blue-soft: #DCE3F4; --due: #B4420F; --due-soft: #F6E1D6; --done: #2C6B3F; --done-soft: #DCEBDD;
+  --head: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #141716; --col: #1B1F1D; --card: #232826; --ink: #E4E8E4; --muted: #96A09A; --line: #313833; --blue: #8EA6E8; --blue-soft: #263150; --due: #F08A5D; --due-soft: #3D2419; --done: #79C48E; --done-soft: #1F3326; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #141716; --col: #1B1F1D; --card: #232826; --ink: #E4E8E4; --muted: #96A09A; --line: #313833; --blue: #8EA6E8; --blue-soft: #263150; --due: #F08A5D; --due-soft: #3D2419; --done: #79C48E; --done-soft: #1F3326; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.5 var(--body); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.shell { padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+h1 { font: 600 1.6rem/1.1 var(--head); margin: 0; letter-spacing: .01em; }
+.sub { margin: 4px 0 0; color: var(--muted); }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 6px; padding: 7px 12px; font-weight: 500; }
+.btn.primary { background: var(--blue); border-color: var(--blue); color: var(--card); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.danger { color: var(--due); }
+
+.today { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px; }
+.today h2 { font: 600 .78rem var(--head); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.today ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.today li button { border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 4px 10px; font-size: .85rem; display: flex; gap: 8px; align-items: center; }
+.today li button .d { font: 500 .78rem var(--mono); color: var(--muted); }
+.today li.over button { border-color: var(--due); background: var(--due-soft); }
+.today li.over .d { color: var(--due); }
+.today .none { color: var(--muted); font-size: .9rem; }
+
+.board-wrap { overflow-x: auto; padding-bottom: 6px; }
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 1fr); gap: 10px; min-width: min-content; }
+.column { background: var(--col); border-radius: 8px; padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 160px; }
+.col-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 2px 2px 4px; border-bottom: 1px solid var(--line); }
+.col-head b { font: 600 .95rem var(--head); }
+.col-head span { font: 500 .8rem var(--mono); color: var(--muted); }
+.col-goal { font-size: .78rem; color: var(--muted); margin: 0 2px 2px; }
+.card { text-align: left; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; display: grid; gap: 4px; }
+.card:hover { border-color: var(--muted); }
+.card .nm { font-weight: 600; overflow-wrap: anywhere; }
+.card .meta { color: var(--muted); font-size: .82rem; }
+.card .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .8rem; }
+.card .next { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.date { font: 500 .76rem var(--mono); color: var(--muted); white-space: nowrap; }
+.date.over { color: var(--due); }
+.prog { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--done); }
+.ex { font: 500 .66rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--blue); background: var(--blue-soft); padding: 1px 5px; border-radius: 3px; justify-self: start; }
+.empty-col { color: var(--muted); font-size: .82rem; padding: 6px 2px; }
+
+.notice { background: var(--card); border: 1px dashed var(--line); border-radius: 8px; padding: 14px; color: var(--muted); }
+
+/* Drawer */
+.scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .35); z-index: 40; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--card); z-index: 41; display: flex; flex-direction: column; border-left: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.dr-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.dr-head h2 { font: 600 1.15rem var(--head); margin: 0; overflow-wrap: anywhere; }
+.dr-body { flex: 1; overflow-y: auto; padding: 16px; display: grid; gap: 16px; align-content: start; }
+.dr-foot { display: flex; justify-content: space-between; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+label.f { display: grid; gap: 4px; font-size: .8rem; font-weight: 500; color: var(--muted); min-width: 0; }
+label.f.full { grid-column: 1 / -1; }
+input, select, textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font-size: .92rem; }
+textarea { resize: vertical; min-height: 80px; }
+.sec h3 { font: 600 .78rem var(--head); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.checks label { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; border-radius: 4px; cursor: pointer; }
+.checks label:hover { background: var(--bg); }
+.checks input { width: 16px; height: 16px; margin-top: 2px; flex: none; accent-color: var(--done); }
+.checks .done span { color: var(--muted); text-decoration: line-through; }
+.checks small { display: block; color: var(--muted); font-size: .78rem; }
+.stagebar { display: flex; gap: 4px; flex-wrap: wrap; }
+.stagebar button { border: 1px solid var(--line); background: var(--bg); border-radius: 4px; padding: 4px 8px; font-size: .8rem; }
+.stagebar button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: var(--card); }
+.status { font-size: .8rem; color: var(--muted); }
+.err { color: var(--due); font-size: .85rem; }
+@media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div>
+      <h1>Client Pipeline</h1>
+      <p class="sub" id="sub">Loading your pipeline…</p>
+    </div>
+    <button class="btn primary" id="addBtn" disabled>Add prospect</button>
+  </header>
+
+  <section class="today" aria-labelledby="todayH">
+    <h2 id="todayH">Follow-ups due</h2>
+    <ul id="todayList"></ul>
+  </section>
+
+  <div id="notice" class="notice" hidden></div>
+  <div class="board-wrap"><div class="board" id="board"></div></div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-labelledby="drTitle" role="dialog" aria-modal="true">
+  <div class="dr-head"><h2 id="drTitle">Prospect</h2><button class="btn" id="drClose">Close</button></div>
+  <form class="dr-body" id="drForm">
+    <div class="sec">
+      <h3>Stage</h3>
+      <div class="stagebar" id="stagebar"></div>
+    </div>
+    <div class="grid2">
+      <label class="f full">Business<input id="f_business" required maxlength="120" placeholder="e.g. Kumar Electricals"></label>
+      <label class="f">Trade<input id="f_trade" maxlength="60" placeholder="Electrician"></label>
+      <label class="f">City<input id="f_city" maxlength="60" placeholder="Pune"></label>
+      <label class="f">Owner / contact<input id="f_contact" maxlength="80"></label>
+      <label class="f">Phone<input id="f_phone" type="tel" maxlength="40"></label>
+      <label class="f">Email or website<input id="f_email" maxlength="160"></label>
+      <label class="f">Found via
+        <select id="f_source"><option>Google Maps</option><option>Referral</option><option>Facebook</option><option>Instagram</option><option>JustDial / directory</option><option>Cold email</option><option>Other</option></select>
+      </label>
+      <label class="f">Next step<input id="f_next" maxlength="120" placeholder="Send day-3 follow-up"></label>
+      <label class="f">Due<input id="f_due" type="date"></label>
+    </div>
+    <div class="sec">
+      <h3 id="checkTitle">Checklist</h3>
+      <ul class="checks" id="checks"></ul>
+    </div>
+    <label class="f full">Notes<textarea id="f_notes" maxlength="4000" placeholder="What they said, objections, numbers from the audit…"></textarea></label>
+    <p class="err" id="drErr" role="alert"></p>
+  </form>
+  <div class="dr-foot">
+    <button class="btn danger" id="drDelete" type="button">Delete</button>
+    <span class="status" id="drStatus" role="status"></span>
+    <button class="btn primary" id="drSave" type="submit" form="drForm">Save</button>
+  </div>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+  const STAGES = [
+    { id: "prospect", name: "Prospect", goal: "Qualified and worth contacting", steps: [
+      ["q1", "Check Google listing, reviews and website", "Fewer than 50 reviews or no online booking is a good sign"],
+      ["q2", "Ring them after hours to see what happens", "Voicemail or no answer is your opening line"],
+      ["q3", "Note one specific gap to mention", "e.g. contact form only, no WhatsApp button"] ] },
+    { id: "contacted", name: "Contacted", goal: "Get a 15-minute call booked", steps: [
+      ["c1", "Send first message that names the specific gap", ""],
+      ["c2", "Follow up on day 3", "Different angle: what a missed call costs them"],
+      ["c3", "Follow up on day 7", "Short: \"Worth a quick look?\""],
+      ["c4", "Final follow-up on day 14", "Then move to Lost or park it"] ] },
+    { id: "call", name: "Call booked", goal: "Their numbers, their pain, in their words", steps: [
+      ["k1", "Send a reminder the morning of the call", ""],
+      ["k2", "Run the Missed Revenue Audit live with them", "Use their numbers, not yours"],
+      ["k3", "Paste the audit summary into notes", ""],
+      ["k4", "Agree a date to show the demo", ""] ] },
+    { id: "demo", name: "Demo sent", goal: "They see their own business running on it", steps: [
+      ["d1", "Rebrand booking site and chat with their name, colours and services", "Edit the two config.js files"],
+      ["d2", "Record a 2-minute walkthrough", ""],
+      ["d3", "Send demo link plus audit summary", ""],
+      ["d4", "Follow up in 48 hours", ""] ] },
+    { id: "won", name: "Won", goal: "Live within 7 days", steps: [
+      ["w1", "Collect logo, services list, areas, hours and reviews", ""],
+      ["w2", "Set up Google Sheet backend in their account", "lead-backend/README.md"],
+      ["w3", "Deploy booking site on their subdomain", ""],
+      ["w4", "Install chat receptionist on their website", ""],
+      ["w5", "Test one booking and one chat end to end", ""] ] },
+    { id: "live", name: "Live", goal: "Results, then referrals", steps: [
+      ["l1", "Week-1 check-in: are alerts reaching them?", ""],
+      ["l2", "Month-1 report: leads captured, after-hours share", ""],
+      ["l3", "Ask for a Google review and a testimonial", ""],
+      ["l4", "Ask for two referrals in their trade network", ""] ] },
+    { id: "lost", name: "Lost / parked", goal: "Revisit in 90 days", steps: [
+      ["x1", "Note the reason in notes", ""],
+      ["x2", "Set a due date 90 days out to try again", ""] ] }
+  ];
+  const stageById = Object.fromEntries(STAGES.map((s) => [s.id, s]));
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const fmtDate = (s) => { if (!s) return ""; const d = new Date(s + "T00:00:00"); return d.toLocaleDateString(undefined, { day: "numeric", month: "short" }); };
+
+  let db = null, col = null, deals = [], canWrite = false, openId = null, draftStage = "prospect", draftChecks = {};
+
+  /* ---------- Render ---------- */
+  function render() {
+    const by = Object.fromEntries(STAGES.map((s) => [s.id, []]));
+    deals.forEach((d) => (by[d.stage] || by.prospect).push(d));
+    const t = todayStr();
+    $("board").innerHTML = STAGES.map((s) => {
+      const items = by[s.id].sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
+      return `<section class="column" aria-label="${esc(s.name)}">
+        <div class="col-head"><b>${esc(s.name)}</b><span>${items.length}</span></div>
+        <p class="col-goal">${esc(s.goal)}</p>
+        ${items.map((d) => {
+          const done = s.steps.filter(([k]) => d.checks && d.checks[k]).length;
+          const over = d.due && d.due <= t && s.id !== "lost";
+          return `<button class="card" data-id="${esc(d.id)}">
+            ${d.example ? '<span class="ex">Example</span>' : ""}
+            <span class="nm">${esc(d.business)}</span>
+            <span class="meta">${esc([d.trade, d.city].filter(Boolean).join(" · ")) || "&nbsp;"}</span>
+            <span class="row"><span class="next">${esc(d.next || "No next step set")}</span><span class="date${over ? " over" : ""}">${d.due ? fmtDate(d.due) : ""}</span></span>
+            <span class="prog" aria-label="${done} of ${s.steps.length} steps done"><i style="width:${s.steps.length ? (done / s.steps.length) * 100 : 0}%"></i></span>
+          </button>`; }).join("") || '<p class="empty-col">Nothing here yet.</p>'}
+      </section>`;
+    }).join("");
+
+    const due = deals.filter((d) => d.due && d.due <= addDays(t, 2) && d.stage !== "lost").sort((a, b) => a.due.localeCompare(b.due));
+    $("todayList").innerHTML = due.length
+      ? due.map((d) => `<li class="${d.due < t ? "over" : ""}"><button data-id="${esc(d.id)}"><span>${esc(d.business)}: ${esc(d.next || "follow up")}</span><span class="d">${d.due < t ? "overdue" : d.due === t ? "today" : fmtDate(d.due)}</span></button></li>`).join("")
+      : '<li class="none">Nothing due in the next two days.</li>';
+
+    const active = deals.filter((d) => !["lost"].includes(d.stage)).length;
+    const live = by.live.length + by.won.length;
+    $("sub").textContent = deals.length ? `${active} active · ${by.call.length + by.demo.length} in conversation · ${live} won or live` : "Add the first business you want to approach.";
+  }
+  function addDays(s, n) { const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-id]"); if (b && !e.target.closest(".drawer")) openDrawer(b.dataset.id);
+  });
+
+  /* ---------- Drawer ---------- */
+  const F = ["business", "trade", "city", "contact", "phone", "email", "source", "next", "due", "notes"];
+  function renderStageUI() {
+    $("stagebar").innerHTML = STAGES.map((s) => `<button type="button" data-stage="${s.id}" aria-pressed="${s.id === draftStage}">${esc(s.name)}</button>`).join("");
+    const s = stageById[draftStage];
+    $("checkTitle").textContent = `${s.name} checklist`;
+    $("checks").innerHTML = s.steps.map(([k, label, hint]) => `<li><label class="${draftChecks[k] ? "done" : ""}"><input type="checkbox" data-k="${k}" ${draftChecks[k] ? "checked" : ""} ${canWrite ? "" : "disabled"}><span>${esc(label)}${hint ? `<small>${esc(hint)}</small>` : ""}</span></label></li>`).join("");
+  }
+  $("stagebar").addEventListener("click", (e) => { const b = e.target.closest("[data-stage]"); if (!b || !canWrite) return; draftStage = b.dataset.stage; renderStageUI(); });
+  $("checks").addEventListener("change", (e) => { const k = e.target.dataset.k; if (!k) return; draftChecks[k] = e.target.checked; e.target.closest("label").classList.toggle("done", e.target.checked); });
+
+  function openDrawer(id) {
+    openId = id || null;
+    const d = deals.find((x) => x.id === id) || { stage: "prospect", source: "Google Maps", checks: {} };
+    F.forEach((k) => { $("f_" + k).value = d[k] || ""; $("f_" + k).disabled = !canWrite; });
+    if (!d.source) $("f_source").value = "Google Maps";
+    draftStage = d.stage || "prospect"; draftChecks = Object.assign({}, d.checks || {});
+    $("drTitle").textContent = id ? d.business : "New prospect";
+    $("drDelete").hidden = !id || !canWrite; $("drSave").hidden = !canWrite;
+    $("drErr").textContent = ""; $("drStatus").textContent = "";
+    renderStageUI();
+    $("scrim").hidden = false; $("drawer").hidden = false;
+    setTimeout(() => (id ? $("drClose") : $("f_business")).focus(), 0);
+  }
+  function closeDrawer() { $("scrim").hidden = true; $("drawer").hidden = true; confirmDel = false; $("drDelete").textContent = "Delete"; }
+  $("drClose").addEventListener("click", closeDrawer);
+  $("scrim").addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("drawer").hidden) closeDrawer(); });
+  $("addBtn").addEventListener("click", () => openDrawer(null));
+
+  $("drForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!canWrite || !col) return;
+    const body = {};
+    F.forEach((k) => (body[k] = $("f_" + k).value.trim()));
+    if (!body.business) { $("drErr").textContent = "Give the business a name."; $("f_business").focus(); return; }
+    body.stage = draftStage; body.checks = draftChecks; body.updatedAt = new Date().toISOString();
+    const prev = deals.find((x) => x.id === openId);
+    if (prev && prev.example) body.example = true;
+    body.createdAt = (prev && prev.createdAt) || body.updatedAt;
+    $("drSave").disabled = true; $("drStatus").textContent = "Saving…";
+    try {
+      if (openId) await col.doc(openId).set(body); else await col.add(body);
+      closeDrawer();
+    } catch (err) {
+      $("drErr").textContent = err && err.code === "quota_exceeded" ? "The pipeline is full. Delete old Lost entries to make room." : "Couldn't save. Check your connection and try again.";
+      $("drStatus").textContent = "";
+    } finally { $("drSave").disabled = false; }
+  });
+
+  let confirmDel = false;
+  $("drDelete").addEventListener("click", async () => {
+    if (!openId || !canWrite) return;
+    if (!confirmDel) { confirmDel = true; $("drDelete").textContent = "Click again to delete"; return; }
+    try { await col.doc(openId).delete(); closeDrawer(); } catch (_) { $("drErr").textContent = "Couldn't delete. Try again."; }
+  });
+
+  /* ---------- Data ---------- */
+  render();
+  (async () => {
+    db = window.claude ? await window.claude.use("db") : null;
+    if (!db) {
+      $("sub").textContent = "Pipeline data isn't available in this view.";
+      $("notice").hidden = false; $("notice").textContent = "Open this page in Claude while signed in to see and edit your pipeline.";
+      return;
+    }
+    const user = await window.claude.use("user");
+    canWrite = user ? (await user.isOwner()) || (await user.can("data.write")) !== false : true;
+    $("addBtn").disabled = !canWrite;
+    col = db.collection("deals");
+    const timer = setTimeout(() => { $("notice").hidden = false; $("notice").textContent = "Still connecting to your pipeline. What you see may be out of date."; }, 10000);
+    col.onSnapshot((snap) => {
+      if (!snap.metadata.fromCache) { clearTimeout(timer); $("notice").hidden = true; }
+      deals = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+      render();
+    }, () => { clearTimeout(timer); $("notice").hidden = false; $("notice").textContent = "Lost the connection to your pipeline. Reload the page to reconnect."; });
+  })();
+})();
+</script>
