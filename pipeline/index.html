@@ -162,15 +162,17 @@ textarea { resize: vertical; min-height: 80px; }
       ["d2", "Record a 2-minute walkthrough", ""],
       ["d3", "Send demo link plus audit summary", ""],
       ["d4", "Follow up in 48 hours", ""] ] },
-    { id: "won", name: "Won", goal: "Live within 7 days", steps: [
-      ["w1", "Collect logo, services list, areas, hours and reviews", ""],
-      ["w2", "Set up Google Sheet backend in their account", "lead-backend/README.md"],
+    { id: "won", name: "Won", goal: "We run their back office within 7 days", steps: [
+      ["w1", "Collect logo, services, areas, hours, reviews, payment details and tax number", ""],
+      ["w2", "Set up their Ops Engine sheet and fill in Config.gs", "ops-engine/README.md"],
       ["w3", "Deploy booking site on their subdomain", ""],
       ["w4", "Install chat receptionist on their website", ""],
-      ["w5", "Test one booking and one chat end to end", ""] ] },
+      ["w5", "Test: booking, chat, then mark done for an amount of 1 and check the invoice", ""],
+      ["w6", "Send the owner their jobs-app link; show them the five buttons", ""],
+      ["w7", "Add their sheet to HQ", ""] ] },
     { id: "live", name: "Live", goal: "Results, then referrals", steps: [
-      ["l1", "Week-1 check-in: are alerts reaching them?", ""],
-      ["l2", "Month-1 report: leads captured, after-hours share", ""],
+      ["l1", "Week-1 check-in: are they tapping Job done and Paid?", ""],
+      ["l2", "Go through the first monthly report with them", "Enquiries, after-hours share, invoiced, paid, reviews"],
       ["l3", "Ask for a Google review and a testimonial", ""],
       ["l4", "Ask for two referrals in their trade network", ""] ] },
     { id: "lost", name: "Lost / parked", goal: "Revisit in 90 days", steps: [

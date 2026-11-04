@@ -46,7 +46,7 @@ window.CLIENT = {
   bookingDaysAhead: 10,
   emergencyLine247: true,
 
-  // Where leads go. Paste the Google Apps Script web-app URL from lead-backend/README.md.
+  // Where leads go. Paste the Google Apps Script web-app URL from ops-engine/README.md.
   // Leave "" in demos: leads are then only shown on screen + sent via WhatsApp.
   webhookUrl: "",
 

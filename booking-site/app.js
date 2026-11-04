@@ -173,6 +173,7 @@
       slot: slotLabel(state.slot),
       slotHour: state.slot,
       name, phone, area,
+      email: $("email").value.trim(),
       notes: $("notes").value.trim(),
       smsConsent: $("consent").checked,
       page: location.href

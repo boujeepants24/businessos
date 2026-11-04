@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root {
+  --bg: #EEF0EC; --card: #FBFBF9; --ink: #1A1E1C; --muted: #5E6661; --line: #CDD2CB;
+  --blue: #23408E; --due: #B4420F; --due-soft: #F6E1D6; --ok: #2C6B3F; --ok-soft: #DCEBDD;
+  --head: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root { --bg: #141716; --card: #202523; --ink: #E4E8E4; --muted: #96A09A; --line: #313833; --blue: #8EA6E8; --due: #F08A5D; --due-soft: #3D2419; --ok: #79C48E; --ok-soft: #1F3326; color-scheme: dark; } }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--body); padding: 0 max(14px, env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+button, input, select, textarea { font: inherit; color: inherit; }
+header { padding: 18px 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+h1 { font: 600 1.3rem var(--head); margin: 0; }
+.sync { font: 500 .75rem var(--mono); color: var(--muted); }
+section { margin-top: 18px; }
+h2 { font: 600 .78rem var(--head); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; display: flex; gap: 8px; }
+h2 .n { font-family: var(--mono); }
+.job { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 6px; margin-bottom: 8px; }
+.job.alert { border-color: var(--due); }
+.top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.nm { font-weight: 600; }
+.when { font: 500 .8rem var(--mono); color: var(--muted); white-space: nowrap; }
+.when.red { color: var(--due); }
+.meta { color: var(--muted); font-size: .88rem; }
+.notes { font-size: .88rem; background: var(--bg); padding: 6px 8px; border-radius: 4px; }
+.tag { font: 600 .66rem var(--mono); text-transform: uppercase; letter-spacing: .05em; background: var(--due-soft); color: var(--due); padding: 2px 6px; border-radius: 3px; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.acts a, .acts button { flex: 1 1 auto; min-height: 40px; display: grid; place-items: center; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); text-decoration: none; font-weight: 500; font-size: .9rem; padding: 0 10px; cursor: pointer; }
+.acts a { color: var(--ink); }
+.acts .go { color: var(--card); background: var(--blue); color: var(--card); border-color: var(--blue); }
+.acts .good { background: var(--ok); color: var(--card); border-color: var(--ok); }
+.empty { color: var(--muted); font-size: .88rem; padding: 4px 0; }
+.fab { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); background: var(--blue); color: var(--card); border: 0; border-radius: 99px; padding: 14px 20px; font-weight: 600; box-shadow: 0 8px 24px -8px rgb(0 0 0 / .4); cursor: pointer; }
+.sheet-bg { position: fixed; inset: 0; background: rgb(0 0 0 / .4); z-index: 10; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; background: var(--card); border-radius: 14px 14px 0 0; padding: 18px max(16px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; gap: 12px; max-height: 88vh; overflow-y: auto; }
+.sheet h3 { font: 600 1.1rem var(--head); margin: 0; }
+label { display: grid; gap: 4px; font-size: .82rem; font-weight: 500; color: var(--muted); }
+input, select, textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: 1rem; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btns { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+.btns button { min-height: 46px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-weight: 600; cursor: pointer; }
+.btns .go { background: var(--blue); color: var(--card); border-color: var(--blue); }
+.err { color: var(--due); font-size: .88rem; margin: 0; }
+.err:empty { display: none; }
+.toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: .9rem; z-index: 20; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header><h1><?= businessName ?></h1><span class="sync" id="sync">Loading…</span></header>
+<div id="lists"></div>
+<button class="fab" id="addBtn">Add job</button>
+
+<div class="sheet-bg" id="bg" hidden></div>
+<form class="sheet" id="sheet" hidden></form>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const KEY = <?!= JSON.stringify(key) ?>;
+let S = null, busy = false;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nice = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) : "";
+
+function call(action, args, okMsg) {
+  if (busy) return; busy = true; $("sync").textContent = "Saving…";
+  google.script.run
+    .withSuccessHandler((state) => { busy = false; S = state; closeSheet(); render(); if (okMsg) toast(okMsg); })
+    .withFailureHandler((err) => { busy = false; $("sync").textContent = "Not saved"; const e = $("sheetErr"); if (e) e.textContent = err.message; else toast(err.message); })
+    .ownerApi(KEY, action, args || {});
+}
+
+function render() {
+  const t = new Date();
+  $("sync").textContent = "Updated " + t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const blocks = [
+    ["Call these people back", S.callBack, (j) => `
+      <a class="go" href="tel:${esc(j.phone)}">Call ${esc(j.phone)}</a>
+      ${j.status === "New" ? `<button data-a="called" data-ref="${esc(j.ref)}">Called</button>` : ""}
+      <button data-a="bookForm" data-ref="${esc(j.ref)}">Book</button>
+      <button data-a="quoteForm" data-ref="${esc(j.ref)}">Quote</button>
+      <button data-a="lostForm" data-ref="${esc(j.ref)}">Not going ahead</button>`, (j) => j.waitingMins != null ? (j.waitingMins < 60 ? j.waitingMins + " min" : Math.round(j.waitingMins / 60) + " h") + " waiting" : "Called", (j) => j.urgent || j.waitingMins > 15],
+    ["Finished? Tap Job done", S.overdue, (j) => doneActs(j), (j) => nice(j.date), () => true],
+    ["Today", S.today, (j) => doneActs(j), (j) => j.slot, () => false],
+    ["Coming up", S.upcoming, (j) => `<a href="tel:${esc(j.phone)}">Call</a><button data-a="bookForm" data-ref="${esc(j.ref)}">Move</button>`, (j) => nice(j.date) + " · " + (j.slot || ""), () => false],
+    ["Quotes waiting for a yes", S.quoted, (j) => `<button class="go" data-a="bookForm" data-ref="${esc(j.ref)}">They said yes: book</button><button data-a="lostForm" data-ref="${esc(j.ref)}">Said no</button>`, (j) => j.quote, () => false],
+    ["Waiting for payment", S.unpaid, (j) => `<button class="good" data-a="paid" data-ref="${esc(j.ref)}">Paid</button><a href="tel:${esc(j.phone)}">Call</a>`, (j) => j.total + " · " + j.invoiceAgeDays + "d", (j) => j.invoiceAgeDays >= 14]
+  ];
+  $("lists").innerHTML = blocks.map(([title, items, acts, when, red]) => {
+    if (!items.length && (title.startsWith("Finished") || title.startsWith("Quotes"))) return "";
+    return `<section><h2>${title} <span class="n">${items.length}</span></h2>${items.length ? items.map((j) => `
+      <article class="job${red(j) ? " alert" : ""}">
+        <div class="top"><span class="nm">${esc(j.name)} ${j.urgent ? '<span class="tag">Urgent</span>' : ""}</span><span class="when${red(j) ? " red" : ""}">${esc(when(j))}</span></div>
+        <div class="meta">${esc(j.service)} · ${esc(j.area)}${j.invoiceNo ? " · " + esc(j.invoiceNo) : ""}</div>
+        ${j.notes ? `<div class="notes">${esc(j.notes)}</div>` : ""}
+        <div class="acts">${acts(j)}</div>
+      </article>`).join("") : `<p class="empty">Nothing here.</p>`}</section>`;
+  }).join("");
+}
+function doneActs(j) {
+  return `<button class="good" data-a="doneForm" data-ref="${esc(j.ref)}">Job done</button><a href="tel:${esc(j.phone)}">Call</a><a href="https://maps.google.com/?q=${encodeURIComponent(j.area)}">Map</a>`;
+}
+const find = (ref) => [].concat(S.callBack, S.quoted, S.overdue, S.today, S.upcoming, S.unpaid).find((j) => j.ref === ref);
+
+/* ---------- Forms ---------- */
+function openSheet(html) { $("sheet").innerHTML = html + `<p class="err" id="sheetErr" role="alert"></p>`; $("sheet").hidden = false; $("bg").hidden = false; const f = $("sheet").querySelector("input,select"); if (f) f.focus(); }
+function closeSheet() { $("sheet").hidden = true; $("bg").hidden = true; $("sheet").onsubmit = null; }
+$("bg").onclick = closeSheet;
+const btns = (label) => `<div class="btns"><button type="button" onclick="closeSheet()">Cancel</button><button class="go" type="submit">${label}</button></div>`;
+const slotOptions = (sel) => S.slots.map((s) => `<option value="${s.hour}" ${Number(sel) === s.hour ? "selected" : ""}>${esc(s.label)}</option>`).join("");
+
+const forms = {
+  bookForm(j) {
+    openSheet(`<h3>Book ${esc(j.name)}</h3>
+      <div class="row"><label>Day<input type="date" id="fDate" min="${S.today}" value="${esc(j.date || S.today)}" required></label>
+      <label>Arrival<select id="fSlot">${slotOptions(j.slotHour)}</select></label></div>
+      <p class="meta" id="clash"></p>${btns("Book and text the customer")}`);
+    const check = () => { const k = $("fDate").value + "|" + $("fSlot").value; $("clash").textContent = S.taken.includes(k) && !(j.date === $("fDate").value && Number(j.slotHour) === Number($("fSlot").value)) ? "Already booked: pick another window." : ""; };
+    $("fDate").oninput = check; $("fSlot").oninput = check; check();
+    $("sheet").onsubmit = (e) => { e.preventDefault(); call("book", { ref: j.ref, date: $("fDate").value, slotHour: Number($("fSlot").value) }, "Booked. Customer notified."); };
+  },
+  quoteForm(j) {
+    openSheet(`<h3>Quote for ${esc(j.name)}</h3>
+      <label>Amount (${esc(S.currency)})<input id="fAmt" type="number" inputmode="decimal" min="1" step="0.01" required></label>
+      <label>What it covers<textarea id="fText" rows="3" placeholder="Replace diverter valve, parts and labour"></textarea></label>${btns("Send quote")}`);
+    $("sheet").onsubmit = (e) => { e.preventDefault(); call("quote", { ref: j.ref, amount: $("fAmt").value, text: $("fText").value }, "Quote sent. Follow-ups are automatic."); };
+  },
+  doneForm(j) {
+    openSheet(`<h3>Job done: ${esc(j.name)}</h3>
+      <label>Amount to charge (${esc(S.currency)}, before tax)<input id="fAmt" type="number" inputmode="decimal" min="0" step="0.01" required placeholder="0 if nothing to pay"></label>
+      <label>Work done (goes on the invoice)<textarea id="fWork" rows="3">${esc(j.service)}</textarea></label>${btns("Send invoice")}`);
+    $("sheet").onsubmit = (e) => { e.preventDefault(); call("done", { ref: j.ref, amount: $("fAmt").value, workDone: $("fWork").value }, Number($("fAmt").value) > 0 ? "Invoice sent. We'll chase it." : "Job closed."); };
+  },
+  lostForm(j) {
+    openSheet(`<h3>Not going ahead: ${esc(j.name)}</h3>
+      <label>Why? (helps us improve)<select id="fWhy"><option>Went with someone else</option><option>Too expensive</option><option>Fixed it themselves</option><option>Couldn't reach them</option><option>Outside our area</option><option>Other</option></select></label>${btns("Save")}`);
+    $("sheet").onsubmit = (e) => { e.preventDefault(); call("lost", { ref: j.ref, reason: $("fWhy").value }, "Saved."); };
+  }
+};
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const j = find(b.dataset.ref); const a = b.dataset.a;
+  if (forms[a]) return forms[a](j);
+  if (a === "called") call("called", { ref: j.ref }, "Marked as called.");
+  if (a === "paid") call("paid", { ref: j.ref }, "Marked paid. Thank-you sent.");
+});
+
+$("addBtn").onclick = () => {
+  openSheet(`<h3>Add a job</h3>
+    <label>Customer name<input id="aName" required autocomplete="off"></label>
+    <div class="row"><label>Mobile<input id="aPhone" type="tel" required></label><label>Email (for invoice)<input id="aEmail" type="email"></label></div>
+    <div class="row"><label>Area / postcode<input id="aArea" required></label><label>Job<select id="aSvc">${S.services.map((s) => `<option>${esc(s)}</option>`).join("")}</select></label></div>
+    <label>Notes<input id="aNotes"></label>
+    <div class="row"><label>Day (leave empty if not booked)<input type="date" id="aDate" min="${S.today}"></label><label>Arrival<select id="aSlot">${slotOptions()}</select></label></div>
+    ${btns("Add job")}`);
+  $("sheet").onsubmit = (e) => {
+    e.preventDefault();
+    call("add", { name: $("aName").value, phone: $("aPhone").value, email: $("aEmail").value, area: $("aArea").value, service: $("aSvc").value, notes: $("aNotes").value, date: $("aDate").value, slotHour: Number($("aSlot").value) }, "Job added.");
+  };
+};
+
+let tt; function toast(m) { const t = $("toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => (t.hidden = true), 2600); }
+
+call("state");
+setInterval(() => { if (!busy && $("sheet").hidden) call("state"); }, 120000);
+</script>
+</body>
+</html>

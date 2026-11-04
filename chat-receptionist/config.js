@@ -26,6 +26,6 @@ window.RECEPTIONIST = {
 
   teaser: "Boiler or leak trouble? I can book you in now.",
   teaserDelaySeconds: 6,
-  webhookUrl: "",                     // same Apps Script URL as the booking site
+  webhookUrl: "",                     // same Ops Engine URL as the booking site
   position: "right"                   // "right" or "left"
 };
