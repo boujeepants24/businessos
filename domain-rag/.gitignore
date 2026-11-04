@@ -1,0 +1,17 @@
+.env
+.domainrag/
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+# Source documents are yours to version or not; uncomment to keep them out of git.
+# knowledge/*
+!knowledge/.gitkeep
