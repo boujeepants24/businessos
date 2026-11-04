@@ -1,0 +1,6 @@
+[submodule "onchain-escrow/lib/forge-std"]
+	path = onchain-escrow/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std.git
+[submodule "onchain-escrow/lib/openzeppelin-contracts"]
+	path = onchain-escrow/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git
