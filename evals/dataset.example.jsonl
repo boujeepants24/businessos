@@ -1,0 +1,9 @@
+// Evaluation questions, one JSON object per line. Lines starting with // are ignored.
+// Copy to evals/dataset.jsonl once the knowledge folder has documents, and replace these examples.
+// expected_sources: file paths (relative to the knowledge folder) that contain the answer.
+// answerable: false for questions the documents do NOT cover; the system must decline them.
+// must_include: phrases a correct answer has to contain (numbers, codes, names).
+//
+// {"id": "q1", "question": "What does error F28 mean?", "expected_sources": ["manuals/boiler.md"], "must_include": ["ignition"]}
+// {"id": "q2", "question": "How long is the warranty?", "expected_sources": ["warranty.txt"], "must_include": ["7 year"]}
+// {"id": "q3", "question": "What is the capital of France?", "answerable": false}
