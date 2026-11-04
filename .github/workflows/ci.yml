@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
+
+      - name: Format
+        run: forge fmt --check
+
+      - name: Build
+        run: forge build --sizes
+
+      - name: Lint
+        run: forge lint src
+
+      - name: Test (unit, fuzz 10k runs, invariants 256 x 500)
+        run: forge test -vvv
+
+      - name: Coverage
+        run: forge coverage --ir-minimum --report summary
