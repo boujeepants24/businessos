@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ops-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ops Engine lifecycle tests
+        run: node ops-engine/test/run.js
+      - name: Widget and site syntax
+        run: |
+          node --check chat-receptionist/widget.js
+          node --check booking-site/app.js
+
+  comms-gateway:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: comms-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests && ruff format --check src tests
+      - run: mypy src
+      - run: pytest -q
