@@ -76,7 +76,7 @@ class Store:
         self._db.execute("PRAGMA foreign_keys = ON")
         self._db.execute("PRAGMA journal_mode = WAL")
         self._db.executescript(SCHEMA)
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()  # serialises all access: one connection, many server threads
         self._matrix: np.ndarray | None = None
         self._matrix_ids: list[str] = []
 
@@ -85,15 +85,19 @@ class Store:
 
     # ------------------------------------------------------------------ metadata
 
+    def _query(self, sql: str, params: Sequence[object] = ()) -> list[sqlite3.Row]:
+        with self._lock:
+            return self._db.execute(sql, params).fetchall()
+
     def get_meta(self, key: str) -> str | None:
-        row = self._db.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
-        return row["value"] if row else None
+        rows = self._query("SELECT value FROM meta WHERE key = ?", (key,))
+        return rows[0]["value"] if rows else None
 
     def bind_embedder(self, name: str) -> None:
         """An index is only valid for the embedder that built it. Refuse to mix them."""
         current = self.get_meta("embedder")
         if current is None:
-            with self._db:
+            with self._lock, self._db:
                 self._db.execute("INSERT INTO meta(key, value) VALUES ('embedder', ?)", (name,))
         elif current != name:
             raise EmbedderMismatch(
@@ -111,8 +115,8 @@ class Store:
     # ------------------------------------------------------------------ writes
 
     def document_hash(self, source: str) -> str | None:
-        row = self._db.execute("SELECT sha256 FROM documents WHERE source = ?", (source,)).fetchone()
-        return row["sha256"] if row else None
+        rows = self._query("SELECT sha256 FROM documents WHERE source = ?", (source,))
+        return rows[0]["sha256"] if rows else None
 
     def upsert_document(self, doc: Document, chunks: Sequence[Chunk], vectors: np.ndarray) -> None:
         if len(chunks) != len(vectors):
@@ -144,27 +148,23 @@ class Store:
     # ------------------------------------------------------------------ reads
 
     def list_documents(self) -> list[dict[str, object]]:
-        rows = self._db.execute("SELECT source, title, n_chunks, ingested_at FROM documents ORDER BY source").fetchall()
+        rows = self._query("SELECT source, title, n_chunks, ingested_at FROM documents ORDER BY source")
         return [dict(r) for r in rows]
 
     def counts(self) -> dict[str, int]:
-        docs = self._db.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
-        chunks = self._db.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+        docs = self._query("SELECT COUNT(*) FROM documents")[0][0]
+        chunks = self._query("SELECT COUNT(*) FROM chunks")[0][0]
         return {"documents": docs, "chunks": chunks}
 
     def get_chunk(self, chunk_id: str) -> StoredChunk | None:
-        row = self._db.execute(
-            "SELECT id, source, title, heading, idx, text FROM chunks WHERE id = ?", (chunk_id,)
-        ).fetchone()
-        return self._row(row) if row else None
+        rows = self._query("SELECT id, source, title, heading, idx, text FROM chunks WHERE id = ?", (chunk_id,))
+        return self._row(rows[0]) if rows else None
 
     def get_chunks(self, ids: Sequence[str]) -> dict[str, StoredChunk]:
         if not ids:
             return {}
         marks = ",".join("?" * len(ids))
-        rows = self._db.execute(
-            f"SELECT id, source, title, heading, idx, text FROM chunks WHERE id IN ({marks})", list(ids)
-        ).fetchall()
+        rows = self._query(f"SELECT id, source, title, heading, idx, text FROM chunks WHERE id IN ({marks})", list(ids))
         return {r["id"]: self._row(r) for r in rows}
 
     @staticmethod
@@ -197,10 +197,10 @@ class Store:
         sql += " ORDER BY score LIMIT ?"
         params.append(k)
         # bm25() is lower-is-better; flip the sign so higher means more relevant everywhere.
-        return [(r["id"], -float(r["score"])) for r in self._db.execute(sql, params).fetchall()]
+        return [(r["id"], -float(r["score"])) for r in self._query(sql, params)]
 
     def _load_matrix(self) -> None:
-        rows = self._db.execute("SELECT id, embedding FROM chunks ORDER BY rowid").fetchall()
+        rows = self._query("SELECT id, embedding FROM chunks ORDER BY rowid")
         self._matrix_ids = [r["id"] for r in rows]
         self._matrix = (
             np.stack([np.frombuffer(r["embedding"], dtype=np.float32) for r in rows])
