@@ -37,3 +37,23 @@ jobs:
       - run: ruff check src tests && ruff format --check src tests
       - run: mypy src
       - run: pytest -q
+
+  domain-rag:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    defaults:
+      run:
+        working-directory: domain-rag
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests && ruff format --check src tests
+      - run: mypy src
+      - run: pytest -q
+      - name: Dependency audit
+        run: pip install pip-audit && pip-audit --skip-editable

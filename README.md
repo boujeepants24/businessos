@@ -8,7 +8,8 @@
 | [`chat-receptionist/`](chat-receptionist) | A chat widget installed with one script tag on any website. It answers 24/7, understands plain messages ("my boiler says F28"), separates emergencies from routine jobs, answers FAQs, and collects the name, number, area and problem. |
 | [`ops-engine/`](ops-engine) | **The back office.** It takes every job from enquiry to paid: instant replies, reminders, quote follow-ups, PDF invoices, payment chasing, review requests, rebooking and monthly reports. The owner uses a five-button phone app. You get one daily HQ email across all clients. |
 | [`comms-gateway/`](comms-gateway) | **Phone front door.** Missed calls get an instant text with the booking link, become leads, and replies and voicemails attach to them. Works internationally via Twilio; one gateway serves every client. |
-| [`client-knowledge/`](client-knowledge) | Optional: lets the chat receptionist answer free-form questions from the client's own documents (services, areas, policies, warranty) via [domain-rag](https://github.com/boujeepants24/domain-rag), with sources, and never guessing. |
+| [`domain-rag/`](domain-rag) | **Knowledge engine.** Retrieval-augmented answers over each client's own documents: hybrid search, cited answers from Claude, prompt-injection defences, an evaluation harness. Runs as a multi-client web API for the chat widget and as an MCP server. |
+| [`client-knowledge/`](client-knowledge) | Optional: lets the chat receptionist answer free-form questions from the client's own documents (services, areas, policies, warranty) via [`domain-rag/`](domain-rag), with sources, and never guessing. |
 | [`pipeline/`](pipeline) | Your own private sales board, from prospect to live client, with each stage's checklist already written. |
 | [`roi-proposal/`](roi-proposal) | A discovery-call tool. Fill it in with the owner using their own numbers to show the work they're losing, then copy the follow-up email it writes. |
 

@@ -1,6 +1,6 @@
 # Client knowledge folder
 
-The chat receptionist can answer free-form questions ("Do I need a service to keep the warranty?", "Do you cover Otley?") from each client's own documents, using [domain-rag](https://github.com/boujeepants24/domain-rag). It answers only from these files, cites them, and says "I can't find that" rather than guessing.
+The chat receptionist can answer free-form questions ("Do I need a service to keep the warranty?", "Do you cover Otley?") from each client's own documents, using [domain-rag](../domain-rag). It answers only from these files, cites them, and says "I can't find that" rather than guessing.
 
 ## What to collect from a client
 
@@ -28,7 +28,7 @@ Use headings (`##`) for each question or sub-topic. The pipeline splits files at
 ## Switch it on for a client
 
 1. Put the approved files in that client's folder on the knowledge server (`clients/<client-id>/knowledge/`).
-2. Add the client to `deploy/clients.json` in domain-rag, with the client's website(s) as `allowed_origins`.
+2. Add the client to `domain-rag/deploy/clients.json`, with the client's website(s) as `allowed_origins`.
 3. Run `domainrag ingest --clients deploy/clients.json`.
 4. In `chat-receptionist/config.js`, set `knowledgeUrl` to `https://<your-knowledge-server>/v1/clients/<client-id>/ask`.
 5. Test: one question the files answer, one they don't. The second must get "I can't find that in our information".
