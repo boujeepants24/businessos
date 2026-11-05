@@ -24,14 +24,11 @@ python3 -m http.server 8000
 
 ## Set up a new client
 
-1. Copy `booking-site/` and `chat-receptionist/`, then edit the two `config.js` files: name, phone, WhatsApp, colours, services, areas, hours and reviews.
-2. Set up the Ops Engine for the client by following [`ops-engine/README.md`](ops-engine/README.md). Paste its web-app URL into both configs as `webhookUrl`.
-3. Deploy the booking site to Netlify, Vercel, Cloudflare Pages or GitHub Pages (drag and drop the folder), and point a subdomain like `book.clientsite.com` at it.
-4. Paste the two chat `<script>` tags into the client's existing website.
-5. Make one test booking and one test chat, then mark the booking done. Check the confirmation, the alerts and the invoice.
-6. Send the owner their jobs-app link and add the client to your HQ sheet.
-7. Connect their phone number to the [comms gateway](comms-gateway/README.md) so missed calls get an instant text and become leads.
-8. Optional: collect the client's knowledge files ([`client-knowledge/README.md`](client-knowledge/README.md)) and set `knowledgeUrl` in the chat config.
+1. Fill in one file per client: copy `onboarding/client.example.toml` (business details, phones, hours, services, branding, payment details).
+2. Run `python3 onboarding/onboard.py onboarding/clients/<id>.toml --agency-email you@agency.example`. It validates everything and generates the booking site, chat widget, back office, phone and knowledge config, plus a checklist with the client's values filled in.
+3. Follow the generated `ONBOARDING.md`: deploy the back office, paste its URL into the toml and re-run, deploy the site, connect the phone number, test end to end.
+
+Details: [`onboarding/README.md`](onboarding/README.md).
 
 ## Ideas for custom work
 

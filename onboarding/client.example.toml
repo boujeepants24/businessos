@@ -1,0 +1,116 @@
+# One file per client. Fill it in on (or right after) the onboarding call, then run:
+#   python3 onboarding/onboard.py onboarding/clients/<id>.toml
+# Everything else (booking site, chat widget, back office, phone gateway, knowledge base) is generated from it.
+# This example is a fictional business.
+
+id = "northfield"                       # lowercase letters, digits and hyphens; used in URLs and file names
+business = "Northfield Plumbing & Heating"
+trade = "Plumbing & Heating"
+tagline = "Leaks, boilers and bathrooms, fixed properly the first time."
+city = "Leeds"
+address = "14 Kirkstall Road, Leeds LS3 1LH"
+website = "https://northfieldplumbing.example"
+booking_url = "https://book.northfieldplumbing.example"   # where the booking site will be hosted
+
+timezone = "Europe/London"              # IANA name: Europe/London, Australia/Sydney, Pacific/Auckland, Europe/Dublin ...
+locale = "en-GB"
+currency = "GBP"
+
+[contact]
+public_phone = "+441134960123"          # the number customers call (the Twilio number), international format
+owner_name = "Dave"
+owner_mobile = "+447700900500"          # missed calls ring here first; must differ from public_phone
+owner_email = "dave@northfieldplumbing.example"
+reply_email = "jobs@northfieldplumbing.example"   # reply-to on customer emails
+whatsapp = "447700900123"               # digits only, with country code; "" to hide WhatsApp buttons
+
+[hours]
+days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+open = 8                                # 24-hour clock, business's own timezone
+close = 18
+slot_length_hours = 2
+emergency_line_24_7 = true
+
+[brand]
+color = "#0F5C8C"
+accent = "#E8A33D"
+logo_text = "NP"                        # monogram when there's no logo file
+logo_url = ""
+
+[trust]
+rating = 4.9
+review_count = 212
+years_trading = 14
+accreditations = ["Gas Safe registered", "WaterSafe approved", "Fully insured"]
+google_review_url = "https://g.page/r/EXAMPLE/review"
+
+[[trust.reviews]]
+name = "Priya K."
+area = "Headingley"
+text = "Boiler died on a Sunday night. Booked online, engineer was here by 9am Monday."
+
+[[trust.reviews]]
+name = "Tom W."
+area = "Roundhay"
+text = "Clear about what was wrong, tidy, and turned up exactly when the text said he would."
+
+[areas]
+served = ["Leeds", "Headingley", "Roundhay", "Horsforth", "Chapel Allerton", "Wetherby", "Otley"]
+
+[tax]
+label = "VAT"                           # "GST" in AU/NZ
+rate = 0.0                              # 0.2 = 20%; 0 if not registered
+number = ""
+
+[payment]
+instructions = "Bank transfer to Northfield Plumbing Ltd, sort code 00-00-00, account 00000000. Use your invoice number as the reference."
+terms_days = 7
+pay_link_template = ""                  # optional, e.g. a Stripe/Wise link with {invoiceNo} and {amount}
+
+[assistant]
+name = "Nia"
+teaser = "Boiler or leak trouble? I can book you in now."
+
+[[services]]
+id = "emergency"
+name = "Emergency call-out"
+description = "Burst pipes, major leaks, no water. Same-day response."
+urgent = true
+rebook_months = 0
+keywords = ["burst", "flood", "leak", "leaking", "emergency", "water everywhere"]
+
+[[services]]
+id = "boiler-repair"
+name = "Boiler repair"
+description = "No heating or hot water, error codes, pressure loss."
+rebook_months = 11
+keywords = ["boiler", "no heating", "no hot water", "error", "pressure", "radiator"]
+
+[[services]]
+id = "boiler-service"
+name = "Boiler service"
+description = "Annual safety check and service, with certificate."
+rebook_months = 11
+keywords = ["service", "servicing", "annual", "certificate", "landlord"]
+
+[[services]]
+id = "drains"
+name = "Blocked drains"
+description = "Sinks, toilets and outside drains cleared."
+rebook_months = 6
+keywords = ["blocked", "drain", "sink", "clog", "smell"]
+
+[[faqs]]
+q = "Which areas do you cover?"
+a = "Leeds and nearby: Headingley, Roundhay, Horsforth, Chapel Allerton, Wetherby and Otley."
+keywords = ["area", "cover", "near", "travel"]
+
+[[faqs]]
+q = "Do you give a quote first?"
+a = "Yes. The engineer diagnoses the problem and explains your options before any work starts."
+keywords = ["quote", "cost", "price", "how much", "estimate"]
+
+# Filled in during setup (the checklist tells you when). Leave empty until then.
+[deployed]
+ops_engine_url = ""                     # Apps Script web-app URL ending in /exec
+knowledge_api = ""                      # e.g. https://kb.youragency.example (leave empty to skip AI answers)

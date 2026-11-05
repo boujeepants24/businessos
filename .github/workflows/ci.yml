@@ -18,6 +18,11 @@ jobs:
           node-version: 22
       - name: Ops Engine lifecycle tests
         run: node ops-engine/test/run.js
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Onboarding generator tests (incl. lifecycle suite on a generated client)
+        run: python3 -m unittest discover -s onboarding/tests -v
       - name: Widget and site syntax
         run: |
           node --check chat-receptionist/widget.js

@@ -1,0 +1,4 @@
+# Real client files hold owners' phone numbers, emails and bank details. This repo is public:
+# keep client .toml files and generated builds out of git (store them in a private repo or drive).
+clients/
+build/
